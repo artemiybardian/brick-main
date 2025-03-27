@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <!-- Подключение Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="text-center">Регистрация</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Форма регистрации -->
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <strong>Ошибки в форме:</strong>
+                                <ul>
+                                    {% for field, errors in form.errors.items %}
+                                        <li><strong>{{ field }}</strong>: {{ errors.0 }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        <form method="post" action="{% url 'register' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="username">Имя пользователя</label>
+                                <input type="text" name="username" class="form-control" id="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Электронная почта</label>
+                                <input type="email" name="email" class="form-control" id="email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password1">Пароль</label>
+                                <input type="password" name="password1" class="form-control" id="password1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password2">Подтвердите пароль</label>
+                                <input type="password" name="password2" class="form-control" id="password2" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="date_of_birth">Дата рождения</label>
+                                <input type="date" name="date_of_birth" class="form-control" id="date_of_birth" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="country">Страна</label>
+                                <input type="text" name="country" class="form-control" id="country" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="city">Город</label>
+                                <input type="text" name="city" class="form-control" id="city" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
+                        </form>
+                        <!-- Ссылка на страницу входа -->
+                        <div class="text-center mt-3">
+                            <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Подключение Bootstrap JS и зависимости -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!-- Модальное окно для изменения аватара -->
+<div class="modal fade" id="changeAvatarModal" tabindex="-1" aria-labelledby="changeAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeAvatarModalLabel">Изменить аватар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'users:change_avatar' %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Выберите изображение</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*" required>
+                        <div class="form-text">Поддерживаются форматы: jpg, jpeg, png, gif. Максимальный размер: 5MB</div>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для редактирования профиля -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Редактировать профиль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'users:edit_profile' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="country" class="form-label">Страна</label>
+                        <select class="form-control" id="country" name="country" required>
+                            <option value="">Выберите страну</option>
+                            {% for code, data in countries.items %}
+                                <option value="{{ code }}" {% if user.country == code %}selected{% endif %}>
+                                    {{ data.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="city" class="form-label">Город</label>
+                        <select class="form-control" id="city" name="city" required>
+                            <option value="">Сначала выберите страну</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="currency" class="form-label">Предпочтительная валюта</label>
+                        <select class="form-control" id="currency" name="currency" required>
+                            <option value="">Выберите валюту</option>
+                            {% for code, name in currency_choices %}
+                                <option value="{{ code }}" {% if user.currency == code %}selected{% endif %}>
+                                    {{ name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="language" class="form-label">Язык</label>
+                        <select class="form-control" id="language" name="language" required>
+                            <option value="">Выберите язык</option>
+                            {% for code, name in language_choices %}
+                                <option value="{{ code }}" {% if user.language == code %}selected{% endif %}>
+                                    {{ name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для изменения пароля -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Изменить пароль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'users:change_password' %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="old_password" class="form-label">Текущий пароль</label>
+                        <input type="password" class="form-control" id="old_password" name="old_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password1" class="form-label">Новый пароль</label>
+                        <input type="password" class="form-control" id="new_password1" name="new_password1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password2" class="form-label">Подтвердите новый пароль</label>
+                        <input type="password" class="form-control" id="new_password2" name="new_password2" required>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Загрузка городов при выборе страны
+    const citiesData = {{ cities_data|safe }};
+    
+    document.getElementById('country').addEventListener('change', function() {
+        const countrySelect = this;
+        const citySelect = document.getElementById('city');
+        const selectedCountry = countrySelect.value;
+        
+        citySelect.innerHTML = '<option value="">Выберите город</option>';
+        
+        if (selectedCountry && citiesData[selectedCountry]) {
+            citiesData[selectedCountry].cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        }
+    });
+</script> 

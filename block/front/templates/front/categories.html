@@ -1,0 +1,124 @@
+{% extends 'front/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    {% if current_category %}
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'categories' %}">Все категории</a></li>
+                {% for cat_id, cat_name in current_category.get_category_path %}
+                    {% if not forloop.last %}
+                        <li class="breadcrumb-item"><a href="{% url 'category_detail' cat_id %}">{{ cat_name }}</a></li>
+                    {% else %}
+                        <li class="breadcrumb-item active">{{ cat_name }}</li>
+                    {% endif %}
+                {% endfor %}
+            </ol>
+        </nav>
+        <h1>{{ current_category.collection_name }}</h1>
+    {% else %}
+        <h1>Категории</h1>
+    {% endif %}
+
+    <div class="category-tree mb-5">
+        {% for category in categories %}
+            {% include 'front/_category_tree.html' with category=category level=0 %}
+        {% empty %}
+            {% if current_category %}
+                <p>В этой категории нет подкатегорий.</p>
+            {% else %}
+                <p>Нет доступных категорий.</p>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if current_category and objects %}
+        <h2>Объекты в категории</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for obj in objects %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ obj.item_name }}</h5>
+                            <p class="card-text">
+                                <small class="text-muted">ID: {{ obj.id }}</small>
+                            </p>
+                            {% if obj.year_first_release %}
+                                <p class="card-text">
+                                    <small class="text-muted">Год выпуска: {{ obj.year_first_release }}</small>
+                                </p>
+                            {% endif %}
+                            <a href="{% url 'object_detail' %}?id={{ obj.id }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-info-circle me-1"></i>Подробнее
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .category-tree {
+        margin-left: 20px;
+    }
+    .category-item {
+        margin: 10px 0;
+    }
+    .level-0 { margin-left: 0; }
+    .level-2 { margin-left: 2em; }
+    .level-4 { margin-left: 4em; }
+    .level-6 { margin-left: 6em; }
+    .level-8 { margin-left: 8em; }
+    .category-name {
+        font-weight: bold;
+        color: #333;
+        text-decoration: none;
+    }
+    .category-name:hover {
+        color: #007bff;
+    }
+    .category-count {
+        color: #666;
+        font-size: 0.9em;
+    }
+    .breadcrumb {
+        background-color: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+    }
+    .toggle-subcategories {
+        color: #666;
+        transition: transform 0.3s ease;
+    }
+    .toggle-subcategories[aria-expanded="false"] {
+        transform: rotate(-90deg);
+    }
+    .subcategories {
+        padding-left: 1.5rem;
+    }
+    .collapse {
+        transition: all 0.3s ease;
+    }
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Обработка анимации иконок сворачивания/разворачивания
+    document.querySelectorAll('.toggle-subcategories').forEach(button => {
+        button.addEventListener('click', function() {
+            this.classList.toggle('rotated');
+        });
+    });
+});
+</script>
+{% endblock %} 

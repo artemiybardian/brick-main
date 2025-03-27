@@ -1,0 +1,238 @@
+{% extends 'front/base.html' %}
+
+{% block title %}Мой вишлист - BRICK{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <h1>Мой вишлист</h1>
+            {% if wishlist_items %}
+            <button class="btn btn-danger clear-wishlist">
+                <i class="fas fa-trash-alt me-1"></i>Очистить вишлист
+            </button>
+            {% endif %}
+        </div>
+        <div class="text-muted">
+            Всего предметов: <span class="total-items-count">{{ total_items }}</span>
+        </div>
+    </div>
+
+    <div id="wishlist-content">
+        {% if wishlist_items %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for item in wishlist_items %}
+                    <div class="col wishlist-item" data-id="{{ item.obj.id }}">
+                        <div class="card h-100">
+                            {% if item.obj.images.exists %}
+                                {% for image in item.obj.images.all %}
+                                    {% if image.color == item.color %}
+                                        <img src="{{ image.address|default:'' }}" class="card-img-top" alt="{{ item.obj.item_name }} - {{ item.color }}" onerror="this.onerror=null; this.src='/static/images/placeholder.jpg';">
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ item.obj.item_name }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">ID: {{ item.obj.id }}</small>
+                                </p>
+                                {% if item.obj.year_first_release %}
+                                    <p class="card-text">
+                                        <small class="text-muted">Год выпуска: {{ item.obj.year_first_release }}</small>
+                                    </p>
+                                {% endif %}
+                                <p class="card-text">
+                                    <small class="text-muted">Цвет: {{ item.color }}</small>
+                                </p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="btn-group quantity-control">
+                                        <button class="btn btn-outline-danger btn-sm remove-from-wishlist" data-id="{{ item.obj.id }}" data-color="{{ item.color }}">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <span class="btn btn-outline-danger btn-sm active user-quantity">
+                                            {{ item.quantity }}
+                                        </span>
+                                        <button class="btn btn-outline-danger btn-sm add-to-wishlist" data-id="{{ item.obj.id }}" data-color="{{ item.color }}">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                    <a href="{% url 'object_detail' %}?id={{ item.obj.id }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-info-circle me-1"></i>Подробнее
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <i class="fas fa-info-circle me-2"></i>
+                Ваш вишлист пуст. Добавьте предметы из каталога!
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.quantity-control .btn {
+    padding: 0.25rem 0.5rem;
+}
+.quantity-control .btn.active {
+    cursor: default;
+    opacity: 1;
+}
+.user-quantity {
+    min-width: 2.5rem;
+    text-align: center;
+}
+.card-img-top {
+    height: 200px;
+    object-fit: contain;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Добавление в вишлист
+    document.querySelectorAll('.add-to-wishlist').forEach(button => {
+        button.addEventListener('click', function() {
+            const objId = this.dataset.id;
+            const color = this.dataset.color;
+            fetch(`/users/wishlist/add/?obj_id=${objId}&color=${color}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'added') {
+                        // Обновляем количество в карточке
+                        const quantitySpan = this.parentElement.querySelector('.user-quantity');
+                        if (quantitySpan) {
+                            quantitySpan.textContent = data.user_quantity;
+                        }
+                        
+                        // Обновляем общее количество предметов
+                        updateTotalItems();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при добавлении в вишлист');
+                });
+        });
+    });
+
+    // Удаление из вишлиста
+    document.querySelectorAll('.remove-from-wishlist').forEach(button => {
+        button.addEventListener('click', function() {
+            const objId = this.dataset.id;
+            const color = this.dataset.color;
+            fetch(`/users/wishlist/remove/?obj_id=${objId}&color=${color}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'removed') {
+                        if (data.user_quantity === 0) {
+                            // Если предмет полностью удален, убираем карточку
+                            const card = this.closest('.wishlist-item');
+                            card.remove();
+                            
+                            // Если это была последняя карточка, показываем сообщение
+                            if (document.querySelectorAll('.wishlist-item').length === 0) {
+                                const wishlistContent = document.getElementById('wishlist-content');
+                                wishlistContent.innerHTML = `
+                                    <div class="alert alert-info" role="alert">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Ваш вишлист пуст. Добавьте предметы из каталога!
+                                    </div>
+                                `;
+                            }
+                        } else {
+                            // Иначе обновляем количество в карточке
+                            const quantitySpan = this.parentElement.querySelector('.user-quantity');
+                            if (quantitySpan) {
+                                quantitySpan.textContent = data.user_quantity;
+                            }
+                        }
+                        
+                        // Обновляем общее количество предметов
+                        updateTotalItems();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при удалении из вишлиста');
+                });
+        });
+    });
+
+    // Функция для обновления общего количества предметов
+    function updateTotalItems() {
+        let total = 0;
+        document.querySelectorAll('.user-quantity').forEach(span => {
+            total += parseInt(span.textContent);
+        });
+        const totalSpan = document.querySelector('.total-items-count');
+        if (totalSpan) {
+            totalSpan.textContent = total;
+        }
+    }
+
+    // Очистка вишлиста
+    const clearWishlistButton = document.querySelector('.clear-wishlist');
+    if (clearWishlistButton) {
+        clearWishlistButton.addEventListener('click', function() {
+            if (confirm('Вы уверены, что хотите очистить весь вишлист?')) {
+                fetch('/users/wishlist/clear/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'cleared') {
+                        const wishlistContent = document.getElementById('wishlist-content');
+                        wishlistContent.innerHTML = `
+                            <div class="alert alert-info" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Ваш вишлист пуст. Добавьте предметы из каталога!
+                            </div>
+                        `;
+                        document.querySelector('.total-items-count').textContent = '0';
+                        clearWishlistButton.remove();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при очистке вишлиста');
+                });
+            }
+        });
+    }
+
+    // Функция для получения CSRF токена из cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}

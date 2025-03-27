@@ -1,0 +1,66 @@
+{% extends 'front/base.html' %}
+
+{% block title %}Подтверждение входа - BRICK{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center mb-0">Подтверждение входа</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-center mb-4">
+                        Код подтверждения был отправлен на вашу почту<br>
+                        <small class="text-muted">{{ email }}</small>
+                    </p>
+
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            {{ error }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'verify_login' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user_id }}">
+                        
+                        <div class="form-group">
+                            <label for="verification_code">Код подтверждения</label>
+                            <input type="text" 
+                                   name="verification_code" 
+                                   class="form-control form-control-lg text-center" 
+                                   id="verification_code" 
+                                   maxlength="6" 
+                                   required
+                                   pattern="\d{6}"
+                                   autocomplete="off">
+                            <small class="form-text text-muted text-center">
+                                Введите 6-значный код, отправленный на вашу почту
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block mt-4">
+                            Подтвердить
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'login' %}" class="text-muted">
+                            <small>Вернуться к форме входа</small>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#verification_code {
+    letter-spacing: 0.5em;
+    font-size: 1.5rem;
+}
+</style>
+{% endblock %} 
