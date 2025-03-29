@@ -51,11 +51,18 @@
                             </div>
                             <div class="form-group">
                                 <label for="country">Страна</label>
-                                <input type="text" name="country" class="form-control" id="country" required>
+                                <select name="country" class="form-control" id="country" required>
+                                    <option value="">Выберите страну</option>
+                                    <option value="RU">Россия</option>
+                                    <option value="KZ">Казахстан</option>
+                                    <option value="BY">Беларусь</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="city">Город</label>
-                                <input type="text" name="city" class="form-control" id="city" required>
+                                <select name="city" class="form-control" id="city" required>
+                                    <option value="">Выберите страну сначала</option>
+                                </select>
                             </div>
                             <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
                         </form>
@@ -68,6 +75,40 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const citiesData = {
+                'RU': ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань',
+                       'Нижний Новгород', 'Челябинск', 'Самара', 'Уфа', 'Ростов-на-Дону',
+                       'Омск', 'Красноярск', 'Воронеж', 'Пермь', 'Волгоград'],
+                'KZ': ['Алматы', 'Нур-Султан', 'Шымкент', 'Караганда', 'Актобе',
+                       'Тараз', 'Павлодар', 'Усть-Каменогорск', 'Семей', 'Атырау'],
+                'BY': ['Минск', 'Гомель', 'Могилёв', 'Витебск', 'Гродно',
+                       'Брест', 'Бобруйск', 'Барановичи', 'Борисов', 'Пинск']
+            };
+    
+            const countrySelect = document.getElementById("country");
+            const citySelect = document.getElementById("city");
+    
+            countrySelect.addEventListener("change", function() {
+                const selectedCountry = this.value;
+                citySelect.innerHTML = "";
+                if (citiesData[selectedCountry]) {
+                    citiesData[selectedCountry].forEach(city => {
+                        const option = document.createElement("option");
+                        option.value = city;
+                        option.textContent = city;
+                        citySelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement("option");
+                    option.value = "";
+                    option.textContent = "Выберите страну сначала";
+                    citySelect.appendChild(option);
+                }
+            });
+        });
+    </script>
     <!-- Подключение Bootstrap JS и зависимости -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>

@@ -1,6 +1,5 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from database import funcs
 from django.contrib.auth.decorators import login_required
 from database.models import Obj, Theme, ThemeLinks
 from users.models import CustomUser, WishlistItem, CollectionItem
