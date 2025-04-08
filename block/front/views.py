@@ -3,6 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from database.models import Obj, Theme, ThemeLinks
 from users.models import CustomUser, WishlistItem, CollectionItem
+from front.models import MainCategory, SubCategory
 
 def home(request):
     """Главная страница"""
@@ -10,24 +11,14 @@ def home(request):
 
 def categories(request):
     """Страница категорий"""
-    root_categories = Theme.objects.exclude(
-        id__in=ThemeLinks.objects.values('low')
-    )
-    return render(request, "front/categories.html", {'categories': root_categories})
+    main_category = MainCategory.objects.all()
+    return render(request, "front/categories.html", {'categories': main_category})
 
 def category_detail(request, category_id):
     """Страница конкретной категории"""
-    category = get_object_or_404(Theme, id=category_id)
-    subcategories = Theme.objects.filter(
-        id__in=ThemeLinks.objects.filter(high=category).values('low')
-    )
-    # Получаем все объекты категории и подкатегорий
-    objects = category.get_all_objects().order_by('item_name')
-    return render(request, "front/categories.html", {
-        'categories': subcategories,
-        'current_category': category,
-        'objects': objects
-    })
+    category = get_object_or_404(MainCategory, id=category_id)
+    sub_category = SubCategory.objects.filter(category=category.id)
+    return render(request, "front/detaile_category.html", {'sub_category': sub_category, 'category':category})
 
 def object_list(request):
     """Список объектов"""

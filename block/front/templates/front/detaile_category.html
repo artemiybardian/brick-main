@@ -1,0 +1,28 @@
+{% extends 'front/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ category.name }}</h1>
+    <div class="row">
+        {% for sub in sub_category %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ sub.name }}</h5>
+
+                    {% if sub.children.all %}
+                    <ul class="list-unstyled">
+                        {% for subsub in sub.children.all %}
+                        <li>- {{ subsub.name }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted">Нет подкатегорий</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

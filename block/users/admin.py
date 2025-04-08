@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import CustomUser
 from django.apps import apps
+from front.models import MainCategory, SubCategory
 
 # Перечень моделей, которые вы хотите оставить в админке
 EXCLUDE_MODELS = [
@@ -22,6 +23,8 @@ for model in all_models:
         except admin.sites.NotRegistered:
             pass  # Если модель не зарегистрирована, игнорируем ошибку
 
+admin.site.register(MainCategory)
+admin.site.register(SubCategory)
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
