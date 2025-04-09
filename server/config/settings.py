@@ -74,13 +74,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ["NAME"],
-        'USER': os.environ["USER"],
-        "PASSWORD": os.environ["PASSWORD"],
-        "HOST": os.environ["HOST"],
-        "PORT": os.environ["PORT"],
+        'NAME': 'brick_main',
+        'USER': 'postgres',        # <- foydalanuvchi nomi to‘g‘ri
+        'PASSWORD': '1',           # <- parol to‘g‘ri
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
     }
 }
 

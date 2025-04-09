@@ -4,6 +4,7 @@ from authen.auth.views import (
     VerifyCodeView, CountryView, CityView
 )
 from authen.profile.views import ProfileAPIView
+from authen.password_change.views import ChangePassword, RequestPasswordRestEmail, SetNewPasswordView
 
 
 urlpatterns = [
@@ -16,5 +17,9 @@ urlpatterns = [
     path('city/<int:country_id>/', CityView.as_view()),
     # Profile
     path('profile', ProfileAPIView.as_view()),
+    # Password
+    path('profile/password/change/', ChangePassword.as_view()),
+    path('forget/reset/password/', RequestPasswordRestEmail.as_view()),
+    path('forget/new/password/', SetNewPasswordView.as_view()),
 
 ]
