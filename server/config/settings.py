@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "drf_yasg",
     "authen",
+    "brick_main",
 ]
 
 MIDDLEWARE = [
