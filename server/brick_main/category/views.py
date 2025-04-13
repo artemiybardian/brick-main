@@ -18,7 +18,7 @@ class CategeorysView(APIView):
 
     @swagger_auto_schema(
         tags=["Category"],
-        operation_description="All Category For Web sayt",
+        operation_description="Все категории",
         responses={200: ThemesSerializer(many=True)}
     )
     def get(self, request, *args, **kwargs):

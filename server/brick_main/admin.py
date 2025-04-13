@@ -1,7 +1,8 @@
 from django.contrib import admin
 from brick_main.models import (
     Alternate, Images, Links, Obj,
-    Theme, ThemeLinks, ThemeObjLinks
+    Theme, ThemeLinks, ThemeObjLinks,
+    Color, KnownColor
 )
 
 
@@ -12,3 +13,5 @@ admin.site.register(Obj)
 admin.site.register(Theme)
 admin.site.register(ThemeLinks)
 admin.site.register(ThemeObjLinks)
+admin.site.register(Color)
+admin.site.register(KnownColor)

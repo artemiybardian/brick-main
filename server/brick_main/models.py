@@ -182,4 +182,40 @@ class ThemeObjLinks(models.Model):
 
     def __str__(self):
         return f"Связь: {self.high} -> {self.obj}"
-    
+
+
+class Color(models.Model):
+    """
+    Официальные цвета LEGO.
+    """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название")
+
+    class Meta:
+        db_table = 'color'
+        verbose_name = "Цвет"
+        verbose_name_plural = "Цвета"
+
+    def __str__(self):
+        return self.name
+
+
+class KnownColor(models.Model):
+    """
+    Указывает, в каких цветах доступна определённая деталь (объект).
+    """
+    obj = models.ForeignKey(Obj, models.CASCADE, related_name='known_colors', verbose_name="Деталь")
+    color = models.ForeignKey(Color, models.CASCADE, related_name='known_in_objects', verbose_name="Цвет")
+
+    class Meta:
+        db_table = 'known_color'
+        unique_together = (('obj', 'color'),)
+        verbose_name = "Известный цвет"
+        verbose_name_plural = "Известные цвета"
+        indexes = [
+            models.Index(fields=['obj']),
+            models.Index(fields=['color']),
+        ]
+
+    def __str__(self):
+        return f"{self.obj} доступен в цвете: {self.color}"
