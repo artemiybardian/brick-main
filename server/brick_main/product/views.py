@@ -3,6 +3,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
 
@@ -11,10 +12,12 @@ from drf_yasg import openapi
 
 from utils.pagination import PaginationList
 
-from brick_main.models import Obj, Theme, Links, KnownColor
+from brick_main.models import Obj, Theme, Links, KnownColor, ObjProduct
+from brick_main.product.filter import ObjProductFilter
 from brick_main.product.serializers import (
     ProductsSerializer, ProductDetaileSerializer,
-    LinksSerializer, ProductPartsDetaileSerializer
+    LinksSerializer, ProductPartsDetaileSerializer,
+    ObjProductsSerializers, 
 )
 
 
@@ -194,4 +197,51 @@ class GetProductByColorView(GenericAPIView):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class ObjProductsView(GenericAPIView):
+    serializer_class = ObjProductsSerializers
+    pagination_class = PaginationList
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ObjProductFilter
+
+    @swagger_auto_schema(
+        tags=["Obj / Product"],
+        operation_description="Товары, связанные с Object. Pagination + фильтрация по condition, цене и стране.",
+        manual_parameters=[
+            openapi.Parameter("page", openapi.IN_QUERY, description="Номер страницы", type=openapi.TYPE_INTEGER),
+            openapi.Parameter("limit", openapi.IN_QUERY, description="Элементов на странице", type=openapi.TYPE_INTEGER),
+            openapi.Parameter("condition", openapi.IN_QUERY, description="Фильтр по состоянию", type=openapi.TYPE_STRING),
+            openapi.Parameter("min_price", openapi.IN_QUERY, description="Минимальная цена", type=openapi.TYPE_NUMBER),
+            openapi.Parameter("max_price", openapi.IN_QUERY, description="Максимальная цена", type=openapi.TYPE_NUMBER),
+            openapi.Parameter("country", openapi.IN_QUERY, description="ID страны (можно передать несколько через запятую)", type=openapi.TYPE_STRING),
+        ],
+        responses={200: ObjProductsSerializers(many=True)}
+    )
+    def get(self, request, product_id):
+        obj = get_object_or_404(Obj, id=product_id)
+        queryset = ObjProduct.objects.filter(obj=obj).order_by("id")
+
+        queryset = self.filter_queryset(queryset)
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True, context={"request": request})
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ObjProductDetaileView(APIView):
+
+    @swagger_auto_schema(
+        tags=["Obj / Product"],
+        operation_description="Подробнее о Object продукте",
+        responses={200: ObjProductsSerializers(many=False)}
+    )
+    def get(self, request, product_id):
+        objects = get_object_or_404(ObjProduct, id=product_id)
+        serializer = ObjProductsSerializers(objects, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)

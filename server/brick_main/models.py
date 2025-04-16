@@ -1,4 +1,22 @@
 from django.db import models
+from authen.models import Country, CustomUser
+
+
+class Currency(models.Model):
+    name = models.CharField(max_length=250, verbose_name="Название")
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'valyuta'
+        verbose_name = "Тип валюты"
+        verbose_name_plural = "Тип валюты"
+
+
+class ConditionType(models.TextChoices):
+    NEW = "новое", "Новый"
+    OLD = "б/у:", "б/у:"
 
 
 class Alternate(models.Model):
@@ -219,3 +237,61 @@ class KnownColor(models.Model):
 
     def __str__(self):
         return f"{self.obj} доступен в цвете: {self.color}"
+
+
+class ObjProduct(models.Model):
+    name = models.CharField(max_length=250, verbose_name="Название")
+    description = models.CharField(max_length=250, verbose_name="Описание")
+    image = models.URLField(null=True, blank=True, verbose_name="URL-адрес изображения")
+    quantity = models.CharField(max_length=250, verbose_name="Количество")
+    condition = models.CharField(max_length=100, null=True, blank=True, choices=ConditionType.choices, verbose_name="Состояние")
+    obj = models.ForeignKey(Obj, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Объект")
+    country = models.ManyToManyField(Country, null=True, blank=True, verbose_name="Продавец отправляет товар")
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'obj_product'
+        verbose_name = "Объект продукта"
+        verbose_name_plural = "Объект продукта"
+
+
+class ObjProductPrice(models.Model):
+    product = models.ForeignKey(ObjProduct, on_delete=models.CASCADE, null=True, blank=True, related_name="product_price", verbose_name="Продукт")
+    price = models.CharField(max_length=250, null=True, blank=True, verbose_name="Цена")
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Валюта")
+
+    class Meta:
+        db_table = 'product_price'
+        verbose_name = "Цена продукта"
+        verbose_name_plural = "Цена продукта"
+
+
+class WantedList(models.Model):
+    name = models.CharField(max_length=250, verbose_name="имя")
+    description = models.TextField(null=True, blank=True, verbose_name="Описание")
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Владелец")
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'wanted_list'
+        verbose_name = "Вишлисты"
+        verbose_name_plural = "Вишлисты"
+
+
+class WantedListProduct(models.Model):
+    wanted = models.ForeignKey(WantedList, on_delete=models.CASCADE, null=True, blank=True, related_name="wanted_product", verbose_name="Вишлисты")
+    product = models.ForeignKey(ObjProduct, on_delete=models.CASCADE, null=True, blank=True, verbose_name="продукта")
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Цвета")
+    quantity = models.IntegerField(null=True, blank=True, verbose_name="Количество")
+
+    def __str__(self):
+        return f"Вишлисты: {self.wanted.name} - продукт: {self.product.name}"
+    
+    class Meta:
+        db_table = 'wanted_list_product'
+        verbose_name = "Вишлисты продукт"
+        verbose_name_plural = "Вишлисты продукта"

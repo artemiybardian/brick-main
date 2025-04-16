@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': 'brick_main',
         'USER': 'postgres',        # <- foydalanuvchi nomi to‘g‘ri
         'PASSWORD': '1',           # <- parol to‘g‘ri
-        'HOST': '127.0.0.1',
+        'HOST': '100.64.198.18',
         'PORT': '5432',
     }
 }

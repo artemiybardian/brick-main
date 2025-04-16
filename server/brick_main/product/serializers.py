@@ -1,7 +1,14 @@
 from rest_framework import serializers
 
-from brick_main.models import Obj, Images, ThemeObjLinks, Links, Color, KnownColor
+from brick_main.models import Obj, Images, ThemeObjLinks, Links, Color, KnownColor, ObjProduct, ObjProductPrice, Currency
 from brick_main.category.serializers import ThemesSerializer
+
+
+class CurrencySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Currency
+        fields = ['id', 'name']
 
 
 class ColorsSerializers(serializers.ModelSerializer):
@@ -110,3 +117,18 @@ class ProductPartsDetaileSerializer(serializers.ModelSerializer):
                 'images',
                 'theme_obj_links'
                 ]
+
+
+class ObjProductPriceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ObjProductPrice
+        fields = ['id', 'product', 'price', 'currency']
+
+
+class ObjProductsSerializers(serializers.ModelSerializer):
+    product_price = ObjProductPriceSerializer(many=True)
+
+    class Meta:
+        model = ObjProduct
+        fields = ['id', 'name', 'description', 'image', 'quantity', 'condition', 'obj', 'country', 'product_price']
