@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from brick_main.models import Shops, Deliverys, Currency, Country
+from brick_main.models import Shops, Deliverys, Currency, Country, ObjProduct, ObjProductPrice
 
 
 class DeliverysSerializer(serializers.ModelSerializer):
@@ -70,3 +70,58 @@ class ShopIsActiveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shops
         fields = ['id', 'is_openid', 'owner']
+    
+
+
+class ShopProductPriceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ObjProductPrice
+        fields = ['id', 'product', 'price', 'currency']
+
+
+class ShopProductsSerializers(serializers.ModelSerializer):
+    product_price = ShopProductPriceSerializer(many=True)
+
+    class Meta:
+        model = ObjProduct
+        fields = ['id', 'name', 'description', 'image', 'quantity', 'condition', 'obj', 'country', 'product_price', 'shop', 'owner']
+
+
+class ShopProductSerializers(serializers.ModelSerializer):
+    product_price = ShopProductPriceSerializer(many=True, required=False)
+    country = serializers.PrimaryKeyRelatedField(queryset=Country.objects.all(), many=True)
+
+    class Meta:
+        model = ObjProduct
+        fields = ['id', 'name', 'description', 'image', 'quantity', 'condition', 'obj', 'country', 'product_price', 'shop', 'owner']
+
+    def create(self, validated_data):
+        price_data = validated_data.pop('product_price', [])
+        countries = validated_data.pop('country', [])
+        product = ObjProduct.objects.create(**validated_data)
+        product.owner = self.context.get("owner")
+        product.save()
+        product.country.set(countries)
+
+        for price in price_data:
+            ObjProductPrice.objects.create(product=product, **price)
+
+        return product
+
+    def update(self, instance, validated_data):
+        price_data = validated_data.pop('product_price', [])
+        countries = validated_data.pop('country', [])
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        instance.country.set(countries)
+
+        if price_data:
+            instance.product_price.all().delete()
+            for price in price_data:
+                ObjProductPrice.objects.create(product=instance, **price)
+
+        return instance

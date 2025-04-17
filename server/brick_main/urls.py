@@ -10,7 +10,10 @@ from brick_main.wanted.views import (
     WantedsListView, WantedListView, AddProductToWishlistAPIView,
     WantedListProductsView, WantedListProducView
 )
-from brick_main.shop.views import DeliveryView, ShopsView, ShopView, ShopIsActiveView
+from brick_main.shop.views import (
+    DeliveryView, ShopsView, ShopView, ShopIsActiveView, 
+    ShopProductsForSellerView, ShopProductView, ShopProductsView
+)
 
 
 urlpatterns = [
@@ -40,6 +43,9 @@ urlpatterns = [
     path('shop/for/owner/', ShopsView.as_view()),
     path('shop/<int:shop_id>/for/owner/', ShopView.as_view()),
     path('shop/<int:shop_id>/activate/', ShopIsActiveView.as_view()),
+    path('shop/prodcut/for/seller/', ShopProductsForSellerView.as_view()),
+    path('shop/product/<int:product_id>/for/seller/', ShopProductView.as_view()),
+    path('shop/<int:shop_id>/products/', ShopProductsView.as_view()),
 
 
 ]

@@ -131,4 +131,4 @@ class ObjProductsSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = ObjProduct
-        fields = ['id', 'name', 'description', 'image', 'quantity', 'condition', 'obj', 'country', 'product_price']
+        fields = ['id', 'name', 'description', 'image', 'quantity', 'condition', 'obj', 'country', 'product_price', 'shop', 'owner']

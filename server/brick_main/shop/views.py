@@ -11,8 +11,11 @@ from drf_yasg import openapi
 
 from utils.permissions import IsSellerRole
 
-from brick_main.models import Deliverys, Shops
-from brick_main.shop.serializers import DeliverysSerializer, ShopsSerializer, ShopSerializer, ShopIsActiveSerializer
+from brick_main.models import Deliverys, Shops, ObjProduct
+from brick_main.shop.serializers import (
+    DeliverysSerializer, ShopsSerializer, ShopSerializer, ShopIsActiveSerializer,
+    ShopProductsSerializers, ShopProductSerializers
+)
 
 
 class DeliveryView(APIView):
@@ -111,3 +114,85 @@ class ShopIsActiveView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Shop Product
+
+class ShopProductsForSellerView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSellerRole]
+
+    @swagger_auto_schema(
+        tags=["Shop / Product"],
+        operation_description="Продукция, На роль Продавца",
+        responses={200: ShopProductsSerializers(many=True)}
+    )
+    def get(self, request):
+        objects = ObjProduct.objects.filter(owner=request.user).order_by("-id")
+        serializer = ShopProductsSerializers(objects, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+    @swagger_auto_schema(
+        tags=["Shop / Product"],
+        operation_description="Продукты, Создать для магазина",
+        request_body=ShopProductSerializers
+    )
+    def post(self, request):
+        serializer = ShopProductSerializers(data=request.data, context={"owner":request.user, "request":request})
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ShopProductView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsSellerRole]
+
+    @swagger_auto_schema(
+        tags=["Shop / Product"],
+        operation_description=["О товаре, Продавец"],
+        responses={200: ShopProductsSerializers(many=False)}
+    )
+    def get(self, request, product_id):
+        objects = get_object_or_404(ObjProduct, id=product_id)
+        serializer = ShopProductsSerializers(objects, many=False, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @swagger_auto_schema(
+        tags=["Shop / Product"],
+        operation_description=["Обновление продукта, для магазина"],
+        request_body=ShopProductSerializers,
+    )
+    def put(self, request, product_id):
+        instance = get_object_or_404(ObjProduct, id=product_id)
+        serializer = ShopProductSerializers(instance=instance, data=request.data, context={"request": request}, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @swagger_auto_schema(
+        tags=["Shop / Product"],
+        operation_description=["Удаление продукта"],
+        responses={204:  "No Content"}
+    )
+    def delete(self, request, product_id):
+        product = get_object_or_404(ObjProduct, id=product_id)
+        product.delete()
+        return Response({"message": "Удалить успешно"}, status=status.HTTP_204_NO_CONTENT)
+
+
+
+class ShopProductsView(APIView):
+
+    @swagger_auto_schema(
+        tags=["Shop / Product"],
+        operation_description="Посмотреть все товары в магазине",
+        responses={200: ShopProductsSerializers(many=True)}
+    )
+    def get(self, request, shop_id):
+        objects = ObjProduct.objects.filter(shop=shop_idr).order_by("-id")
+        serializer = ShopProductsSerializers(objects, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
