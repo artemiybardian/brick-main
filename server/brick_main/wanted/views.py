@@ -73,3 +73,5 @@ class WantedListView(APIView):
         wanted = get_object_or_404(WantedList, id=pk)
         wanted.delete()
         return Response({"message": "Удалить успешно"}, status=status.HTTP_204_NO_CONTENT)
+
+

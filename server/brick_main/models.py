@@ -2,6 +2,18 @@ from django.db import models
 from authen.models import Country, CustomUser
 
 
+class Deliverys(models.Model):
+    name = models.CharField(max_length=250, verbose_name="Название")
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'deliverys'
+        verbose_name = "Службы доставки"
+        verbose_name_plural = "Службы доставки"
+
+
 class Currency(models.Model):
     name = models.CharField(max_length=250, verbose_name="Название")
 
@@ -17,6 +29,24 @@ class Currency(models.Model):
 class ConditionType(models.TextChoices):
     NEW = "новое", "Новый"
     OLD = "б/у:", "б/у:"
+
+
+class Shops(models.Model):
+    name = models.CharField(max_length=250, verbose_name="Название")
+    address = models.CharField(max_length=250, verbose_name="Адрес магазина")
+    country = models.ManyToManyField(Country, blank=True, verbose_name="Выбор, в какие страны отправляешь")
+    is_openid = models.BooleanField(default=False, verbose_name="Временно закрыт")
+    delivery_service = models.ForeignKey(Deliverys, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Доставка")
+    currency = models.ManyToManyField(Currency, blank=True, verbose_name="Валюта магазина")
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Владелец")
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'shops'
+        verbose_name = "Магазин"
+        verbose_name_plural = "Магазин"
 
 
 class Alternate(models.Model):
@@ -246,7 +276,9 @@ class ObjProduct(models.Model):
     quantity = models.CharField(max_length=250, verbose_name="Количество")
     condition = models.CharField(max_length=100, null=True, blank=True, choices=ConditionType.choices, verbose_name="Состояние")
     obj = models.ForeignKey(Obj, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Объект")
+    shop = models.ForeignKey(Shops, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Магазин")
     country = models.ManyToManyField(Country, null=True, blank=True, verbose_name="Продавец отправляет товар")
+    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Владелец")
     
     def __str__(self):
         return self.name

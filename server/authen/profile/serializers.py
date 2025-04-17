@@ -18,11 +18,11 @@ class GroupsSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     country = CountrySerializer(read_only=True)
     city = CitySerializer(read_only=True)
-    gorups = GroupsSerializer(many=True)
+    groups = GroupsSerializer(many=True)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'avatar', 'birth_date', 'country', 'city', 'gorups']
+        fields = ['id', 'username', 'email', 'avatar', 'birth_date', 'country', 'city', 'groups']
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
