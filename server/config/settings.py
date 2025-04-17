@@ -78,8 +78,8 @@ DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'brick_main',
-        'USER': 'postgres',        # <- foydalanuvchi nomi to‘g‘ri
-        'PASSWORD': '1',           # <- parol to‘g‘ri
+        'USER': 'postgres',
+        'PASSWORD': '1',
         'HOST': '100.64.198.18',
         'PORT': '5432',
     }

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from brick_main.models import WantedList
+from brick_main.models import WantedList, WantedListProduct
 
 
 class WantedsListSerializer(serializers.ModelSerializer):
@@ -29,3 +29,9 @@ class WantedListSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class WantedListProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = WantedListProduct
+        fields = ['id', 'wanted', 'product', 'color', 'quantity']
