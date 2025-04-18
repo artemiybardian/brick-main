@@ -5,9 +5,10 @@ from django.forms.models import BaseInlineFormSet
 from brick_main.models import (
     Alternate, Images, Links, Obj, Theme, ThemeLinks, ThemeObjLinks,
     Color, KnownColor, Currency, ObjProduct, ObjProductPrice, WantedList,
-    WantedListProduct, Deliverys, Shops
+    WantedListProduct, Deliverys, Shops, Statusorder
 )
 
+admin.site.register(Statusorder)
 admin.site.register(Deliverys)
 admin.site.register(Shops)
 admin.site.register(Alternate)

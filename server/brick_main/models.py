@@ -2,6 +2,18 @@ from django.db import models
 from authen.models import Country, CustomUser
 
 
+class Statusorder(models.Model):
+    name = models.CharField(max_length=250, verbose_name="Название")
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        db_table = 'status_order'
+        verbose_name = "Статус Заказ"
+        verbose_name_plural = "Статус Заказ"
+
+
 class Deliverys(models.Model):
     name = models.CharField(max_length=250, verbose_name="Название")
 
@@ -327,3 +339,35 @@ class WantedListProduct(models.Model):
         db_table = 'wanted_list_product'
         verbose_name = "Вишлисты продукт"
         verbose_name_plural = "Вишлисты продукта"
+
+
+class Order(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name="Клиент")
+    shop = models.ForeignKey(Shops, on_delete=models.CASCADE, verbose_name="Магазин")
+    is_new = models.BooleanField(default=True, verbose_name="Новый заказ")
+    delivery = models.ForeignKey(Deliverys, on_delete=models.CASCADE, null=True, blank=True)
+    status = models.ForeignKey(Statusorder, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Статус")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
+    
+
+    class Meta:
+        db_table = "order"
+        verbose_name = "Заказ"
+        verbose_name_plural = "Заказы"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.shop.name} - {self.created_at.strftime('%Y-%m-%d')}"
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items_product", verbose_name="Заказ")
+    product = models.ForeignKey(ObjProduct, on_delete=models.CASCADE, verbose_name="Продукт")
+    quantity = models.PositiveIntegerField(verbose_name="Число")
+
+    def __str__(self):
+        return f"{self.product.name} ({self.quantity})"
+
+    class Meta:
+        db_table = "order_item"
+        verbose_name = "Заказать продукцию"
+        verbose_name_plural = "Заказать продукцию"
