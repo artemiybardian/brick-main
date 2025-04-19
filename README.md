@@ -10,7 +10,7 @@ cp .env.example .env
 
 ## 2. Создание виртуального окружения (для Windows)
 
-# (Версия Python обязательно >3.10)
+### (Версия Python обязательно >3.10)
 
 ```
 python -m venv venv
