@@ -46,7 +46,7 @@ class ProductAnalyticsAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        tags=["Analitik"],
+        tags=["Analytics"],
         manual_parameters=[
             openapi.Parameter('type', openapi.IN_QUERY, description="Тип продукта (detal, nabor, minifigurka, instruktsiya)", type=openapi.TYPE_STRING, required=True),
             openapi.Parameter('period', openapi.IN_QUERY, description="Временные интервалы (year, half_year, 3month, month, week)", type=openapi.TYPE_STRING, required=True),
