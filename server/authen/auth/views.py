@@ -18,8 +18,11 @@ from utils.utils import send_verification_email
 
 from authen.models import CustomUser, Country, City
 from authen.auth.serializers import (
-    RegisterSerializer, LoginSerializer,
-    CountrySerializer, CitySerializer
+    RegisterSerializer,
+    LoginSerializer,
+    CountrySerializer,
+    CitySerializer,
+    LoginSuccessResponseSerializer,
 )
 
 
@@ -31,7 +34,7 @@ class CountryView(APIView):
     )
     def get(self, request):
         country = Country.objects.all()
-        serializer = CountrySerializer(country, many=True, context={'request':request})
+        serializer = CountrySerializer(country, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -43,19 +46,26 @@ class CityView(APIView):
     )
     def get(self, request, country_id):
         country = City.objects.filter(country=country_id)
-        serializer = CitySerializer(country, many=True, context={'request':request})
+        serializer = CitySerializer(country, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class RegisterView(APIView):
 
-    @swagger_auto_schema(request_body=RegisterSerializer, tags=["Auth"], responses={201: "Зарегистрирован. Подтвердите адрес электронной почты."})
+    @swagger_auto_schema(
+        request_body=RegisterSerializer,
+        tags=["Auth"],
+        responses={201: "Зарегистрирован. Подтвердите адрес электронной почты."},
+    )
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             send_verification_email(user, request)
-            return Response({"message": "Создано пользователем. Подтвердите адрес электронной почты."}, status=status.HTTP_201_CREATED)
+            return Response(
+                {"message": "Создано пользователем. Подтвердите адрес электронной почты."},
+                status=status.HTTP_201_CREATED,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -64,13 +74,15 @@ class VerifyEmailView(APIView):
     @swagger_auto_schema(
         tags=["Auth"],
         manual_parameters=[
-            openapi.Parameter('uidb64', openapi.IN_PATH, description="Пользователь, закодированный в Base64", type=openapi.TYPE_STRING),
-            openapi.Parameter('token', openapi.IN_PATH, description="Проверочный токен", type=openapi.TYPE_STRING),
+            openapi.Parameter(
+                "uidb64", openapi.IN_PATH, description="Пользователь, закодированный в Base64", type=openapi.TYPE_STRING
+            ),
+            openapi.Parameter("token", openapi.IN_PATH, description="Проверочный токен", type=openapi.TYPE_STRING),
         ],
         responses={
             200: openapi.Response(description="Электронная почта подтверждена"),
-            400: "Ошибка или истек срок действия токена"
-        }
+            400: "Ошибка или истек срок действия токена",
+        },
     )
     def get(self, request, uidb64, token):
         try:
@@ -85,58 +97,78 @@ class VerifyEmailView(APIView):
             user.save()
 
             refresh = RefreshToken.for_user(user)
-            return Response({
-                'message': 'Электронная почта подтверждена',
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": "Электронная почта подтверждена",
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+                status=status.HTTP_200_OK,
+            )
         else:
-            return Response({'error': 'Ссылка недействительна или срок ее действия истек.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response(
+                {"error": "Ссылка недействительна или срок ее действия истек."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 class LoginView(APIView):
 
     @swagger_auto_schema(
         request_body=LoginSerializer,
         responses={
-            200: openapi.Response(description="Код подтверждения отправлен по электронной почте"),
-            400: openapi.Response(description="Электронная почта не проверена или неверные данные для входа")
+            200: openapi.Response(
+                description="Код подтверждения отправлен по электронной почте", schema=LoginSuccessResponseSerializer
+            ),
+            400: openapi.Response(description="Электронная почта не проверена или неверные данные для входа"),
         },
-        tags=["Auth"]
+        tags=["Auth"],
     )
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
-            username_or_email = serializer.validated_data['username_or_email']
-            password = serializer.validated_data['password']
+            username_or_email = serializer.validated_data["username_or_email"]
+            password = serializer.validated_data["password"]
 
             user = None
-            if '@' in username_or_email:
-                user = authenticate(request, username=username_or_email, password=password)
+            if "@" in username_or_email:
+                try:
+                    user_obj = CustomUser.objects.get(email=username_or_email)
+                    user = authenticate(request, username=user_obj.username, password=password)
+                except CustomUser.DoesNotExist:
+                    user = None
             else:
                 user = authenticate(request, username=username_or_email, password=password)
 
             if user:
                 if not user.is_email_verified:
-                    return Response({'error': 'Подтвердите адрес электронной почты.'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(
+                        {"error": "Подтвердите адрес электронной почты."}, status=status.HTTP_400_BAD_REQUEST
+                    )
 
                 verification_code = random.randint(100000, 999999)
                 user.verification_code = verification_code
                 user.save()
-                
+
                 send_mail(
-                    'Ваш проверочный код',
-                    f'Ваш код подтверждения: {verification_code}',
-                    'from@example.com',
+                    "Ваш проверочный код",
+                    f"Ваш код подтверждения: {verification_code}",
+                    "from@example.com",
                     [user.email],
                     fail_silently=False,
                 )
 
-                return Response({
-                    'message': 'Пожалуйста, проверьте свою электронную почту на наличие проверочного кода.'
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {
+                        "message": "Пожалуйста, проверьте свою электронную почту на наличие проверочного кода.",
+                        "email": user.email,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             else:
-                return Response({'error': 'Неверные учетные данные или адрес электронной почты не проверен.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Неверные учетные данные или адрес электронной почты неверный."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -146,31 +178,37 @@ class VerifyCodeView(APIView):
         request_body=openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
-                'email': openapi.Schema(type=openapi.TYPE_STRING, description="Адрес электронной почты пользователя"),
-                'verification_code': openapi.Schema(type=openapi.TYPE_STRING, description="Код подтверждения отправлен на электронную почту пользователя")
+                "email": openapi.Schema(type=openapi.TYPE_STRING, description="Адрес электронной почты пользователя"),
+                "verification_code": openapi.Schema(
+                    type=openapi.TYPE_STRING,
+                    description="Код подтверждения отправлен на электронную почту пользователя",
+                ),
             },
         ),
         responses={
             200: openapi.Response(description="Проверка прошла успешно. Токен JWT возвращен."),
-            400: openapi.Response(description="Неверный код подтверждения или пользователь не найден.")
+            400: openapi.Response(description="Неверный код подтверждения или пользователь не найден."),
         },
-        tags=["Auth"]
+        tags=["Auth"],
     )
     def post(self, request):
-        email = request.data.get('email')
-        verification_code = request.data.get('verification_code')
+        email = request.data.get("email")
+        verification_code = request.data.get("verification_code")
 
         try:
             user = CustomUser.objects.get(email=email)
             if user.verification_code == verification_code:
 
                 refresh = RefreshToken.for_user(user)
-                return Response({
-                    'message': 'Проверка прошла успешно.',
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }, status=status.HTTP_200_OK)
+                return Response(
+                    {
+                        "message": "Проверка прошла успешно.",
+                        "refresh": str(refresh),
+                        "access": str(refresh.access_token),
+                    },
+                    status=status.HTTP_200_OK,
+                )
             else:
-                return Response({'error': 'Неверный проверочный код.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Неверный проверочный код."}, status=status.HTTP_400_BAD_REQUEST)
         except CustomUser.DoesNotExist:
-            return Response({'error': 'Пользователь не найден.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Пользователь не найден."}, status=status.HTTP_400_BAD_REQUEST)

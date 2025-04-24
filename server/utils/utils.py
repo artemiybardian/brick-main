@@ -16,8 +16,7 @@ def send_verification_email(user, request):
 
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
-    current_site = "127.0.0.1:8000"
-    activation_link = f"http://127.0.0.1:8000/api/verify-email/{uid}/{token}/"
+    activation_link = f"http://178.253.55.222:8000/api/verify-email/{uid}/{token}/"
 
     send_mail(
         subject="Подтверждение по электронной почте",
@@ -47,9 +46,7 @@ class PasswordReset:
 
         doamin = get_current_site(request).domain
 
-        path = reverse(
-            "password_reset_confirm", kwargs={"uidb64": uidb64, "token": token}
-        )
+        path = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
         redirect_url = settings.FRONTEND_URL + "/reset-password-complete"
         url = "http://{}{}?redirect_url={}".format(doamin, path, redirect_url)
 
